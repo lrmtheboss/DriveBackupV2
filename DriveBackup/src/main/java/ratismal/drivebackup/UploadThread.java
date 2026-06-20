@@ -620,7 +620,11 @@ public class UploadThread implements Runnable {
             ZonedDateTime nextBackupDate = Scheduler.getBackupDatesList().stream()
                 .filter(zdt -> zdt.isAfter(now))
                 .min(Comparator.naturalOrder())
-                .orElseThrow(NoSuchElementException::new);
+                .orElseGet(() -> Scheduler.getBackupDatesList().stream()
+                                    .map(zdt -> zdt.plusWeeks(1))
+                                    .min(Comparator.naturalOrder())
+                                    .orElseThrow(NoSuchElementException::new)
+                );
             DateTimeFormatter backupDateFormatter = DateTimeFormatter.ofPattern(intl("next-schedule-backup-format"), config.advanced.dateLanguage);
             return intl("next-schedule-backup").replaceAll("%DATE", nextBackupDate.format(backupDateFormatter));
         } else if (config.backupStorage.delay != -1) {
